@@ -19,7 +19,7 @@ XMLSize_t MyBinInputStream::readBytes( XMLByte* const toFill , const XMLSize_t m
 {
     char* buf = new char[maxToRead+1];
     file.read(buf, maxToRead);
-    size_t len = file.gcount();
+    ssize_t len = file.gcount();
     for(int i = 0; i < len; i++)
     {
         if(0 <= buf[i] && buf[i] < ' ' && buf[i] != '\t' && buf[i] != '\r' && buf[i] != '\n') // invalid

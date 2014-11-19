@@ -1,4 +1,5 @@
 #include "MySAX2Handler.hpp"
+#include "util.hpp"
 #include <xercesc/util/TransService.hpp>
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/sax2/Attributes.hpp>
@@ -56,6 +57,10 @@ void MySAX2Handler::startElement(const XMLCh* const uri, const XMLCh* const loca
         {
             state = NEW_THREAD;
         }
+        else if(xmlStringEquals(htmlClass, "footer"))
+        {
+            state = NONE;
+        }
     }
     else if(xmlStringEquals(localname, "span"))
     {
@@ -103,7 +108,7 @@ void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t length)
             user = XMLString::transcode(chars);
             break;
         case MSG_CONTENT:
-            cout << "In thread " << thread << ", user " << user << " says at " << meta << ": " << chars << "\n";
+            Util::timestamp(meta);
             break;
         case NONE:
             break;
@@ -128,6 +133,7 @@ void MySAX2Handler::initXMLStrings()
     addXmlString("meta");
     addXmlString("thread");
     addXmlString("message");
+    addXmlString("footer");
 }
 
 void MySAX2Handler::addXmlString(const char* str)
