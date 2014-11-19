@@ -1,3 +1,2 @@
-*.o
-parse_messages
-messages.htm
+/build/*
+!/build/.gitkeep
