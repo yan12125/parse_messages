@@ -5,7 +5,7 @@
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 using namespace xercesc;
 
-void parseMessageHtm(const char* filename, sqlite::connection* output_db)
+void parseMessageHtm(const char* filename, sqlite::connection& output_db)
 {
     XMLPlatformUtils::Initialize();
 
@@ -38,7 +38,7 @@ int main (int argc, char* argv[])
     sqlite::connection con("output.db");
     sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages (thread text, timestamp int, user text, content text)", true);
 
-    parseMessageHtm(argv[1], &con);
+    parseMessageHtm(argv[1], con);
 
     return 0;
 }

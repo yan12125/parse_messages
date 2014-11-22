@@ -14,12 +14,12 @@ template<typename... Types>
 class SQLiteInsertor
 {
 public:
-    SQLiteInsertor(sqlite::connection* con, string sql, unsigned int length): con(con), buffer_size(length)
+    SQLiteInsertor(sqlite::connection& con, string sql, unsigned int length): con(con), buffer_size(length)
     {
         size_t pos = sql.find_last_of(' ');
         string head = sql.substr(0, pos+1);
         string tail = sql.substr(pos+1);
-        insert = new sqlite::command(*con, head + boost::algorithm::join(vector<string>(length, tail), ","));
+        insert = new sqlite::command(con, head + boost::algorithm::join(vector<string>(length, tail), ","));
     }
 
     ~SQLiteInsertor()
@@ -44,7 +44,7 @@ public:
         }
     }
 private:
-    sqlite::connection* con;
+    sqlite::connection& con;
     sqlite::command* insert;
     vector<boost::tuple<Types...>> data_buffer;
     size_t buffer_size;
