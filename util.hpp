@@ -1,5 +1,5 @@
-#ifndef _util_hpp
-#define _util_hpp
+#pragma once
+
 #include <unordered_map>
 #include <string>
 #include <regex>
@@ -36,5 +36,3 @@ private:
 public:
     static long timestamp(string data);
 };
-
-#endif

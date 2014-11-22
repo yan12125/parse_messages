@@ -1,10 +1,11 @@
 #include "MySAX2Handler.hpp"
 #include "MyInputSource.hpp"
+#include <sqlite/execute.hpp>
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 using namespace xercesc;
 
-void parseMessageHtm(const char* filename)
+void parseMessageHtm(const char* filename, sqlite::connection* output_db)
 {
     XMLPlatformUtils::Initialize();
 
@@ -12,7 +13,7 @@ void parseMessageHtm(const char* filename)
     parser->setFeature(XMLUni::fgSAX2CoreValidation, true);
     parser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);   // optional
 
-    MySAX2Handler* defaultHandler = new MySAX2Handler();
+    MySAX2Handler* defaultHandler = new MySAX2Handler(output_db);
     parser->setContentHandler(defaultHandler);
     parser->setErrorHandler(defaultHandler);
 
@@ -34,8 +35,10 @@ int main (int argc, char* argv[])
     {
         return -1;
     }
+    sqlite::connection con("output.db");
+    sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages (thread text, timestamp int, user text, content text)", true);
 
-    parseMessageHtm(argv[1]);
+    parseMessageHtm(argv[1], &con);
 
     return 0;
 }

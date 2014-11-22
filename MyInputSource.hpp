@@ -1,3 +1,5 @@
+#pragma once
+
 #include <xercesc/sax/InputSource.hpp>
 #include <string>
 using namespace xercesc;

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <xercesc/util/BinInputStream.hpp>
 #include <string>
 #include <fstream>

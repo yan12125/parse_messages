@@ -2,16 +2,35 @@ cmake_minimum_required(VERSION 3.0)
 
 project(parse_messages)
 
-find_package(PkgConfig)
+set(CMAKE_CXX_COMPILER "clang++")
+
+find_package(PkgConfig REQUIRED)
 
 # Dependencies
-find_package(Boost 1.57.0 COMPONENTS locale)
-pkg_check_modules(XERCES_C xerces-c)
+find_package(Boost 1.57.0 REQUIRED COMPONENTS locale)
+pkg_check_modules(XERCES_C REQUIRED xerces-c)
 
-include_directories(${Boost_INCLUDE_DIRS} ${XERCES_C_INCLUDE_DIRS})
+find_path(VSQLITEPP_INCLUDE_DIR sqlite/connection.hpp)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall")
+if(NOT DEFINED VSQLITEPP_INCLUDE_DIR)
+    message(FATAL_ERROR "VSQlite++ include path not found")
+endif()
 
-add_executable(parse_messages parse_messages.cpp MySAX2Handler.cpp MyInputSource.cpp MyBinInputStream.cpp util.cpp)
+find_library(VSQLITEPP_LIBRARY vsqlitepp)
 
-target_link_libraries(parse_messages ${Boost_LIBRARIES} ${XERCES_C_LIBRARIES})
+if(NOT DEFINED VSQLITEPP_LIBRARY)
+    message(FATAL_ERROR "VSQlite++ library not found")
+endif()
+
+message("VSQlite++ found.")
+message("  Include path: ${VSQLITEPP_INCLUDE_DIR}")
+message("  Library path: ${VSQLITEPP_LIBRARY}")
+
+include_directories(${Boost_INCLUDE_DIRS} ${XERCES_C_INCLUDE_DIRS} ${VSQLITEPP_INCLUDE_DIR})
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra")
+
+aux_source_directory(${CMAKE_SOURCE_DIR} SOURCES)
+add_executable(parse_messages ${SOURCES})
+
+target_link_libraries(parse_messages ${Boost_LIBRARIES} ${XERCES_C_LIBRARIES} ${VSQLITEPP_LIBRARY})

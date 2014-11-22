@@ -14,7 +14,8 @@ ostream& operator<<(ostream& os, const XMLCh* str)
     return os;
 }
 
-MySAX2Handler::MySAX2Handler()
+MySAX2Handler::MySAX2Handler(sqlite::connection* con): 
+    inserter(con, "INSERT INTO messages (thread,timestamp,user,content) VALUES (?,?,?,?)", 200)
 {
     initXMLStrings();
     state = NONE;
@@ -39,7 +40,7 @@ bool MySAX2Handler::xmlStringEquals(const XMLCh* l, const char* r)
     return XMLString::equals(l, xmlStrings[r]);
 }
 
-void MySAX2Handler::startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname, const Attributes& attrs)
+void MySAX2Handler::startElement(const XMLCh* const /*uri*/, const XMLCh* const localname, const XMLCh* const /*qname*/, const Attributes& attrs)
 {
     const XMLCh* htmlClass = attrs.getValue(xmlStrings["class"]);
     if(debug)
@@ -79,7 +80,7 @@ void MySAX2Handler::startElement(const XMLCh* const uri, const XMLCh* const loca
     }
 }
 
-void MySAX2Handler::endElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname)
+void MySAX2Handler::endElement(const XMLCh* const /*uri*/, const XMLCh* const localname, const XMLCh* const /*qname*/)
 {
     if(debug)
     {
@@ -87,7 +88,7 @@ void MySAX2Handler::endElement(const XMLCh* const uri, const XMLCh* const localn
     }
 }
 
-void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t length)
+void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t /*length*/)
 {
     if(debug)
     {
@@ -108,8 +109,12 @@ void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t length)
             user = XMLString::transcode(chars);
             break;
         case MSG_CONTENT:
-            Util::timestamp(meta);
+        {
+            char* content = XMLString::transcode(chars);
+            inserter.push_data(thread, Util::timestamp(meta), user, content);
+            XMLString::release(&content);
             break;
+        }
         case NONE:
             break;
     }
