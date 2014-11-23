@@ -2,9 +2,9 @@
 #include "MyInputSource.hpp"
 #include "SQLiteInserter.hpp"
 #include <sqlite/execute.hpp>
-#include <string>
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
+#include <string>
 using namespace xercesc;
 
 void parseMessageHtm(const char* filename, SQLiteInsertor<string, int, string, string>& inserter)

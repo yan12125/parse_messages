@@ -23,10 +23,9 @@ MySAX2Handler::MySAX2Handler(CallbackT& callback): callback(callback)
 
 MySAX2Handler::~MySAX2Handler()
 {
-    cleanupXmlStrings();
     XMLString::release(&meta);
-    XMLString::release(&user);
     XMLString::release(&thread);
+    cleanupXmlStrings();
 }
 
 bool MySAX2Handler::xmlStringEquals(const XMLCh* l, const char* r)
@@ -85,6 +84,12 @@ void MySAX2Handler::endElement(const XMLCh* const /*uri*/, const XMLCh* const lo
     {
         cout << "</" << localname << ">\n";
     }
+    if(state == MSG_CONTENT && xmlStringEquals(localname, "p"))
+    {
+        callback(thread, Util::timestamp(meta), user, content);
+        user.clear();
+        content.clear();
+    }
 }
 
 void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t /*length*/)
@@ -104,14 +109,17 @@ void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t /*lengt
             meta = XMLString::transcode(chars);
             break;
         case MSG_USER:
-            XMLString::release(&user);
-            user = XMLString::transcode(chars);
+        {
+            char* partial_user = XMLString::transcode(chars);
+            user += partial_user;
+            XMLString::release(&partial_user);
             break;
+        }
         case MSG_CONTENT:
         {
-            char* content = XMLString::transcode(chars);
-            callback(thread, Util::timestamp(meta), user, content);
-            XMLString::release(&content);
+            char* partial_content = XMLString::transcode(chars);
+            content += partial_content;
+            XMLString::release(&partial_content);
             break;
         }
         case NONE:

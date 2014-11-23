@@ -26,7 +26,8 @@ private:
     enum { NONE, NEW_THREAD, MSG_META, MSG_USER, MSG_CONTENT } state;
     char* thread;
     char* meta;
-    char* user;
+    string user;
+    string content;
     unordered_map<const char*, const XMLCh*> xmlStrings;
     bool debug;
     CallbackT& callback;
