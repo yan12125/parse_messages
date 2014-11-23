@@ -14,8 +14,7 @@ ostream& operator<<(ostream& os, const XMLCh* str)
     return os;
 }
 
-MySAX2Handler::MySAX2Handler(sqlite::connection& con): 
-    inserter(con, "INSERT INTO messages (thread,timestamp,user,content) VALUES (?,?,?,?)", 200)
+MySAX2Handler::MySAX2Handler(CallbackT& callback): callback(callback)
 {
     initXMLStrings();
     state = NONE;
@@ -111,7 +110,7 @@ void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t /*lengt
         case MSG_CONTENT:
         {
             char* content = XMLString::transcode(chars);
-            inserter.push_data(thread, Util::timestamp(meta), user, content);
+            callback(thread, Util::timestamp(meta), user, content);
             XMLString::release(&content);
             break;
         }

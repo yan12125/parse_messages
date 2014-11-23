@@ -1,15 +1,16 @@
 #pragma once
 
-#include "SQLiteInserter.hpp"
 #include <xercesc/sax2/DefaultHandler.hpp>
 #include <unordered_map>
+#include <functional>
 using namespace std;
 using namespace xercesc;
 
 class MySAX2Handler : public DefaultHandler
 {
 public:
-    MySAX2Handler(sqlite::connection& con);
+    typedef function<void(string, int, string, string)> CallbackT;
+    MySAX2Handler(CallbackT& callback);
     ~MySAX2Handler();
 
     void startElement(const XMLCh* const uri, const XMLCh* const localname, const XMLCh* const qname, const Attributes& attrs);
@@ -28,7 +29,6 @@ private:
     char* user;
     unordered_map<const char*, const XMLCh*> xmlStrings;
     bool debug;
-    SQLiteInsertor<string, int, string, string> inserter;
-
+    CallbackT& callback;
 };
 

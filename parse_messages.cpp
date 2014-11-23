@@ -1,11 +1,13 @@
 #include "MySAX2Handler.hpp"
 #include "MyInputSource.hpp"
+#include "SQLiteInserter.hpp"
 #include <sqlite/execute.hpp>
+#include <string>
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 using namespace xercesc;
 
-void parseMessageHtm(const char* filename, sqlite::connection& output_db)
+void parseMessageHtm(const char* filename, SQLiteInsertor<string, int, string, string>& inserter)
 {
     XMLPlatformUtils::Initialize();
 
@@ -13,7 +15,10 @@ void parseMessageHtm(const char* filename, sqlite::connection& output_db)
     parser->setFeature(XMLUni::fgSAX2CoreValidation, true);
     parser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);   // optional
 
-    MySAX2Handler* defaultHandler = new MySAX2Handler(output_db);
+    MySAX2Handler::CallbackT callback = [&inserter] (string thread, int timestamp, string user, string content) {
+        inserter.push_data(thread, timestamp, user, content);
+    };
+    MySAX2Handler* defaultHandler = new MySAX2Handler(callback);
     parser->setContentHandler(defaultHandler);
     parser->setErrorHandler(defaultHandler);
 
@@ -37,8 +42,9 @@ int main (int argc, char* argv[])
     }
     sqlite::connection con("output.db");
     sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages (thread text, timestamp int, user text, content text)", true);
+    SQLiteInsertor<string, int, string, string> inserter(con, "INSERT INTO messages (thread,timestamp,user,content) VALUES (?,?,?,?)", 200);
 
-    parseMessageHtm(argv[1], con);
+    parseMessageHtm(argv[1], inserter);
 
     return 0;
 }
