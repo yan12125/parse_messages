@@ -20,9 +20,9 @@ if(NOT DEFINED VSQLITEPP_LIBRARY)
     message(FATAL_ERROR "VSQlite++ library not found")
 endif()
 
-message("VSQlite++ found.")
-message("  Include path: ${VSQLITEPP_INCLUDE_DIR}")
-message("  Library path: ${VSQLITEPP_LIBRARY}")
+message(STATUS "VSQlite++ found.")
+message(STATUS "  Include path: ${VSQLITEPP_INCLUDE_DIR}")
+message(STATUS "  Library path: ${VSQLITEPP_LIBRARY}")
 
 include_directories(${Boost_INCLUDE_DIRS} ${XERCES_C_INCLUDE_DIRS} ${VSQLITEPP_INCLUDE_DIR})
 
