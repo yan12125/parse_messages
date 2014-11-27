@@ -5,6 +5,7 @@
 #include <xercesc/sax2/SAX2XMLReader.hpp>
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 #include <string>
+#include <iostream>
 using namespace xercesc;
 
 void parseMessageHtm(const char* filename, SQLiteInsertor<string, int, string, string>& inserter)
@@ -16,6 +17,7 @@ void parseMessageHtm(const char* filename, SQLiteInsertor<string, int, string, s
     parser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);   // optional
 
     MySAX2Handler::CallbackT callback = [&inserter] (string thread, int timestamp, string user, string content) {
+        cout << thread << "," << timestamp << "," << user << "," << content << "\n";
         inserter.push_data(thread, timestamp, user, content);
     };
     MySAX2Handler* defaultHandler = new MySAX2Handler(callback);

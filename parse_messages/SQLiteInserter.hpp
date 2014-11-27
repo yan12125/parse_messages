@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 using namespace std;
+using namespace boost;
 
 template<typename... Types>
 class SQLiteInsertor
@@ -17,14 +18,14 @@ public:
     SQLiteInsertor(sqlite::connection& con, string sql, unsigned int length): con(con), buffer_size(length)
     {
         size_t pos = sql.find_last_of(' ');
-        string head = sql.substr(0, pos+1);
-        string tail = sql.substr(pos+1);
-        insert = new sqlite::command(con, head + boost::algorithm::join(vector<string>(length, tail), ","));
+        head = sql.substr(0, pos+1);
+        tail = sql.substr(pos+1);
+        insert = new sqlite::command(con, head + algorithm::join(vector<string>(length, tail), ","));
     }
 
     ~SQLiteInsertor()
     {
-        delete insert;
+        flush_data(true);
     }
 
     void push_data(Types... args)
@@ -32,21 +33,44 @@ public:
         data_buffer.push_back(boost::tuple<Types...>(args...));
         if(data_buffer.size() == buffer_size)
         {
-            for(boost::tuple<Types...> item : data_buffer)
-            {
-                boost::fusion::for_each(item, [this] (auto& t) {
-                    insert->operator%(t);
-                });
-            }
-            insert->emit();
-            insert->clear();
-            data_buffer.clear();
+            flush_data(false);
         }
     }
 private:
+    void flush_data(bool isTail)
+    {
+        sqlite::command* insert_real;
+        if(isTail)
+        {
+            delete insert;
+            insert = nullptr;
+            insert_real = new sqlite::command(con, head + algorithm::join(vector<string>(data_buffer.size(), tail), ","));
+        }
+        else
+        {
+            insert_real = insert;
+        }
+        for(boost::tuple<Types...> item : data_buffer)
+        {
+            boost::fusion::for_each(item, [this, insert_real] (auto& t) {
+                insert_real->operator%(t);
+            });
+        }
+        insert_real->emit();
+        insert_real->clear();
+        data_buffer.clear();
+
+        if(isTail)
+        {
+            delete insert_real;
+        }
+    }
     sqlite::connection& con;
     sqlite::command* insert;
     vector<boost::tuple<Types...>> data_buffer;
     size_t buffer_size;
+    // re-generating SQL queries
+    string head;
+    string tail;
 };
 

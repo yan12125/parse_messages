@@ -15,7 +15,7 @@ private:
     static vector<string> months;
     static unordered_map<string, int> weekday_map;
     static unordered_map<string, int> month_map;
-    static regex pattern;
+    static vector<regex> patterns;
     static boost::posix_time::ptime epoch;
     static class init
     {
