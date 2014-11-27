@@ -1,24 +1,12 @@
 #include "util.hpp"
-#include <QMessageBox>
 #include <vector>
 #include <functional>
 using namespace std;
 
-vector<string> Util::weekdays = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
-vector<string> Util::months = { "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" };
-unordered_map<string, int> Util::weekday_map;
-unordered_map<string, int> Util::month_map;
-vector<regex> Util::patterns({
-    regex("([A-Z][a-z]+), ([A-Z][a-z]+) (\\d{1,2}), (\\d{4}) at (\\d{1,2}):(\\d{2})([ap]m) UTC([+-]\\d{2})"),
-    regex("(\\d{4})年(\\d{1,2})月(\\d{1,2})日 (\\d{1,2}):(\\d{2}) UTC([+-]\\d{2})")
-});
-boost::posix_time::ptime Util::epoch(boost::gregorian::date(1970,1,1));
-Util::init Util::initializer;
-
 long Util::timestamp(string data)
 {
-    vector<function<void(struct tm&, int&, const smatch&)>> handlers = {
-        [] (struct tm& some_time, int& gmt_offset, const smatch& results) {
+    static vector<function<void(struct tm&, int&, const smatch&)>> handlers = {
+        [this] (struct tm& some_time, int& gmt_offset, const smatch& results) {
             some_time.tm_wday = weekday_map[results[1]];
             some_time.tm_mon = month_map[results[2]];
             some_time.tm_mday = stoi(results[3]);
@@ -28,7 +16,7 @@ long Util::timestamp(string data)
             some_time.tm_min = stoi(results[6]);
             gmt_offset = stoi(results[8]);
         },
-        [] (struct tm& some_time, int& gmt_offset, const smatch& results) {
+        [this] (struct tm& some_time, int& gmt_offset, const smatch& results) {
             some_time.tm_year = stoi(results[1]) - 1900;
             some_time.tm_mon = stoi(results[2]);
             some_time.tm_mday = stoi(results[3]);
@@ -53,7 +41,8 @@ long Util::timestamp(string data)
     }
     if(!parsed)
     {
-        QMessageBox::critical(nullptr, "Fatal error", "Unable to parse time string");
+        emit errorOccurred(data);
+        return 0;
     }
 
     // calculating

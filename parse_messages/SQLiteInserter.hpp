@@ -39,12 +39,17 @@ public:
 private:
     void flush_data(bool isTail)
     {
-        sqlite::command* insert_real;
+        sqlite::command* insert_real = nullptr;
+        bool hasData = !data_buffer.empty();
+
         if(isTail)
         {
             delete insert;
             insert = nullptr;
-            insert_real = new sqlite::command(con, head + algorithm::join(vector<string>(data_buffer.size(), tail), ","));
+            if(hasData)
+            {
+                insert_real = new sqlite::command(con, head + algorithm::join(vector<string>(data_buffer.size(), tail), ","));
+            }
         }
         else
         {
@@ -56,8 +61,11 @@ private:
                 insert_real->operator%(t);
             });
         }
-        insert_real->emit();
-        insert_real->clear();
+        if(hasData)
+        {
+            insert_real->emit();
+            insert_real->clear();
+        }
         data_buffer.clear();
 
         if(isTail)

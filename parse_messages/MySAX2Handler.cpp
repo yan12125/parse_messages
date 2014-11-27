@@ -1,5 +1,4 @@
 #include "MySAX2Handler.hpp"
-#include "util.hpp"
 #include <xercesc/util/TransService.hpp>
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/sax2/Attributes.hpp>
@@ -86,7 +85,7 @@ void MySAX2Handler::endElement(const XMLCh* const /*uri*/, const XMLCh* const lo
     }
     if(state == MSG_CONTENT && xmlStringEquals(localname, "p"))
     {
-        callback(thread, Util::timestamp(meta), user, content);
+        callback(thread, meta, user, content);
         user.clear();
         content.clear();
     }

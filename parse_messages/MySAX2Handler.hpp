@@ -9,7 +9,7 @@ using namespace xercesc;
 class MySAX2Handler : public DefaultHandler
 {
 public:
-    typedef function<void(string, int, string, string)> CallbackT;
+    typedef function<void(string, string, string, string)> CallbackT;
     MySAX2Handler(CallbackT& callback);
     ~MySAX2Handler();
 
