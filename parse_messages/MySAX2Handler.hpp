@@ -1,6 +1,7 @@
 #pragma once
 
 #include <xercesc/sax2/DefaultHandler.hpp>
+#include <xercesc/util/XMLUTF8Transcoder.hpp>
 #include <unordered_map>
 #include <functional>
 using namespace std;
@@ -22,10 +23,15 @@ private:
     void initXMLStrings();
     void addXmlString(const char* str);
     void cleanupXmlStrings();
-    bool xmlStringEquals(const XMLCh* l, const char* r);
+
+    // helpers
+    bool xmlStringEquals(const XMLCh* l, const char* r) const;
+    string toUTF8(const XMLCh* str, XMLSize_t len) const;
+    XMLUTF8Transcoder* transcoder;
+
     enum { NONE, NEW_THREAD, MSG_META, MSG_USER, MSG_CONTENT } state;
-    char* thread;
-    char* meta;
+    string thread;
+    string meta;
     string user;
     string content;
     unordered_map<const char*, const XMLCh*> xmlStrings;
