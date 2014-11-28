@@ -1,6 +1,7 @@
 #include "util.hpp"
 #include <vector>
 #include <functional>
+#include <stdexcept>
 using namespace std;
 
 long Util::timestamp(string data)
@@ -41,8 +42,7 @@ long Util::timestamp(string data)
     }
     if(!parsed)
     {
-        emit errorOccurred(data);
-        return 0;
+        throw domain_error("Failed to parse time string: " +  data);
     }
 
     // calculating

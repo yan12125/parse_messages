@@ -7,6 +7,7 @@
 #include <xercesc/sax2/XMLReaderFactory.hpp>
 #include <string>
 #include <thread>
+#include <stdexcept>
 #include <QApplication>
 #include <QMessageBox>
 using namespace xercesc;
@@ -51,17 +52,29 @@ int main (int argc, char* argv[])
 
     qRegisterMetaType<string>("string");
 
-    thread worker([argv] () {
-        sqlite::connection con("output.db");
-        sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages (thread text, timestamp int, user text, content text)", true);
-        SQLiteInsertor<string, int, string, string> inserter(con, "INSERT INTO messages (thread,timestamp,user,content) VALUES (?,?,?,?)", 200);
+    const char* filename = argv[1];
+    thread worker([filename] () {
+        try
+        {
+            sqlite::connection con("output.db");
+            sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages (thread text, timestamp int, user text, content text)", true);
+            SQLiteInsertor<string, int, string, string> inserter(con, "INSERT INTO messages (thread,timestamp,user,content) VALUES (?,?,?,?)", 200);
 
-        parseMessageHtm(argv[1], inserter);
-        emit util.finished();
+            parseMessageHtm(filename, inserter);
+            emit util.finished();
+        }
+        catch(std::exception &e)
+        {
+            emit util.errorOccurred(e.what());
+        }
+        catch(int n) // xerces-c throws integers
+        {
+            emit util.errorOccurred(std::to_string(n));
+        }
+        // TODO: I don't know how to handle boost::exception
     });
     QObject::connect(&util, &Util::errorOccurred, &app, [] (string data) {
-        string content("Unable to parse time string: \n" + data);
-        QMessageBox::critical(nullptr, "Fatal error", content.c_str());
+        QMessageBox::critical(nullptr, "Fatal error", data.c_str());
         QApplication::exit(-1);
     });
     QObject::connect(&util, &Util::finished, &app, &QApplication::quit);
