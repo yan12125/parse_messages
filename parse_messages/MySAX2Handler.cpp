@@ -83,6 +83,7 @@ void MySAX2Handler::startElement(const XMLCh* const /*uri*/, const XMLCh* const 
         if(xmlStringEquals(htmlClass, "thread"))
         {
             state = NEW_THREAD;
+            thread.clear();
         }
         else if(xmlStringEquals(htmlClass, "footer"))
         {
@@ -129,7 +130,7 @@ void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t length)
     switch(state)
     {
         case NEW_THREAD:
-            thread = toUTF8(chars, length);
+            thread += toUTF8(chars, length);
             break;
         case MSG_META:
             meta = toUTF8(chars, length);
