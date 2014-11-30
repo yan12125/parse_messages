@@ -4,6 +4,26 @@
 #include <stdexcept>
 using namespace std;
 
+Util::Util():
+    weekdays({ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }), 
+    months({ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" }), 
+    patterns({
+        regex("^([A-Z][a-z]+), ([A-Z][a-z]+) (\\d{1,2}), (\\d{4}) at (\\d{1,2}):(\\d{2})([ap]m) UTC([+-]\\d{2})"), 
+        regex("^(\\d{4})年(\\d{1,2})月(\\d{1,2})日 (\\d{1,2}):(\\d{2}) UTC([+-]\\d{2})")
+    }), 
+    epoch(boost::gregorian::date(1970,1,1))
+{
+    boost::locale::time_zone::global("GMT");
+    for(size_t i = 0; i < weekdays.size(); i++)
+    {
+        weekday_map[weekdays[i]] = i;
+    }
+    for(size_t i = 0; i < months.size(); i++)
+    {
+        month_map[months[i]] = i;
+    }
+}
+
 long Util::timestamp(string data)
 {
     static vector<function<void(struct tm&, int&, const smatch&)>> handlers = {
@@ -31,7 +51,7 @@ long Util::timestamp(string data)
     bool parsed = false;
     for(unsigned int i = 0; i < patterns.size(); i++)
     {
-        if(regex_match(data, results, patterns[i]))
+        if(regex_search(data, results, patterns[i]))
         {
             memset(&some_time, 0, sizeof(some_time));
             handlers[i](some_time, last_gmt_offset, results);

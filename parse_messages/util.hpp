@@ -23,25 +23,7 @@ private:
 
     int last_gmt_offset;
 public:
-    Util():
-        weekdays({ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }), 
-        months({ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" }), 
-        patterns({
-            regex("([A-Z][a-z]+), ([A-Z][a-z]+) (\\d{1,2}), (\\d{4}) at (\\d{1,2}):(\\d{2})([ap]m) UTC([+-]\\d{2})"),
-            regex("(\\d{4})年(\\d{1,2})月(\\d{1,2})日 (\\d{1,2}):(\\d{2}) UTC([+-]\\d{2})")
-        }), 
-        epoch(boost::gregorian::date(1970,1,1))
-    {
-        boost::locale::time_zone::global("GMT");
-        for(size_t i = 0; i < weekdays.size(); i++)
-        {
-            weekday_map[weekdays[i]] = i;
-        }
-        for(size_t i = 0; i < months.size(); i++)
-        {
-            month_map[months[i]] = i;
-        }
-    }
+    Util();
     long timestamp(string data);
     int get_last_gmt_offset() const
     {

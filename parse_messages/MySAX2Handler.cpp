@@ -51,19 +51,18 @@ string MySAX2Handler::toUTF8(const XMLCh* str, XMLSize_t len) const
         cout << "toUTF8 str = " << str << ", len = " << len << endl;
     }
 
+    string buf(len * 3 + 1, '\0'); // assume 3 is the maximum length of UTF-8 characters
     XMLSize_t got = 0;
-    XMLByte* buf = new XMLByte[len * 3 + 1]; // assume 3 is the maximum length of UTF-8 characters
-    XMLSize_t bytesFilled = transcoder->transcodeTo(str, len, buf, len * 3, got, XMLUTF8Transcoder::UnRep_Throw);
+    XMLSize_t bytesFilled = transcoder->transcodeTo(str, len, reinterpret_cast<XMLByte*>(&buf[0]), len * 3, got, XMLUTF8Transcoder::UnRep_Throw);
     buf[bytesFilled] = '\0';
-    string ret(reinterpret_cast<const char*>(buf));
-    delete [] buf;
+    buf.resize(bytesFilled);
 
     if(debug)
     {
-        cout << "result = " << ret << endl;
+        cout << "result = " << buf << endl;
     }
 
-    return ret;
+    return buf;
 }
 
 void MySAX2Handler::startElement(const XMLCh* const /*uri*/, const XMLCh* const localname, const XMLCh* const /*qname*/, const Attributes& attrs)
