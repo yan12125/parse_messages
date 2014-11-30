@@ -36,7 +36,6 @@ private:
     string content;
     string last_meta;
     unordered_map<const char*, const XMLCh*> xmlStrings;
-    bool debug;
     CallbackT& callback;
     int contentIndex; // to differentiate messages in the same minute
 };

@@ -1,4 +1,5 @@
 #include "MySAX2Handler.hpp"
+#include "util.hpp"
 #include <xercesc/util/TransService.hpp>
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/sax2/Attributes.hpp>
@@ -21,11 +22,6 @@ MySAX2Handler::MySAX2Handler(CallbackT& callback): callback(callback), contentIn
     state = NONE;
     XMLCh encoding[] = { 'U', 'T', 'F', '8', 0 };
     transcoder = new XMLUTF8Transcoder(encoding, 1024);
-#ifdef MY_DEBUG
-    debug = true;
-#else
-    debug = false;
-#endif
 }
 
 MySAX2Handler::~MySAX2Handler()
@@ -46,7 +42,7 @@ bool MySAX2Handler::xmlStringEquals(const XMLCh* l, const char* r) const
 
 string MySAX2Handler::toUTF8(const XMLCh* str, XMLSize_t len) const
 {
-    if(debug)
+    if(Util::debug)
     {
         cout << "toUTF8 str = " << str << ", len = " << len << endl;
     }
@@ -57,7 +53,7 @@ string MySAX2Handler::toUTF8(const XMLCh* str, XMLSize_t len) const
     buf[bytesFilled] = '\0';
     buf.resize(bytesFilled);
 
-    if(debug)
+    if(Util::debug)
     {
         cout << "result = " << buf << endl;
     }
@@ -68,7 +64,7 @@ string MySAX2Handler::toUTF8(const XMLCh* str, XMLSize_t len) const
 void MySAX2Handler::startElement(const XMLCh* const /*uri*/, const XMLCh* const localname, const XMLCh* const /*qname*/, const Attributes& attrs)
 {
     const XMLCh* htmlClass = attrs.getValue(xmlStrings["class"]);
-    if(debug)
+    if(Util::debug)
     {
         cout << "<" << localname;
         if(htmlClass)
@@ -108,7 +104,7 @@ void MySAX2Handler::startElement(const XMLCh* const /*uri*/, const XMLCh* const 
 
 void MySAX2Handler::endElement(const XMLCh* const /*uri*/, const XMLCh* const localname, const XMLCh* const /*qname*/)
 {
-    if(debug)
+    if(Util::debug)
     {
         cout << "</" << localname << ">\n";
     }
@@ -123,7 +119,7 @@ void MySAX2Handler::endElement(const XMLCh* const /*uri*/, const XMLCh* const lo
 
 void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t length)
 {
-    if(debug)
+    if(Util::debug)
     {
         cout << "Characters: " << chars << "\n";
     }

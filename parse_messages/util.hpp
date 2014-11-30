@@ -29,6 +29,7 @@ public:
     {
         return last_gmt_offset;
     }
+    static bool debug;
 signals:
     void errorOccurred(string time_str);
     void finished();

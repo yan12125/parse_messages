@@ -4,6 +4,12 @@
 #include <stdexcept>
 using namespace std;
 
+#ifdef MY_DEBUG
+bool Util::debug = true;
+#else
+bool Util::debug = false;
+#endif
+
 Util::Util():
     weekdays({ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }), 
     months({ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" }), 
@@ -39,7 +45,7 @@ long Util::timestamp(string data)
         },
         [this] (struct tm& some_time, int& gmt_offset, const smatch& results) {
             some_time.tm_year = stoi(results[1]) - 1900;
-            some_time.tm_mon = stoi(results[2]);
+            some_time.tm_mon = stoi(results[2]) - 1;
             some_time.tm_mday = stoi(results[3]);
             some_time.tm_hour = stoi(results[4]);
             some_time.tm_min = stoi(results[5]);
@@ -62,6 +68,16 @@ long Util::timestamp(string data)
     if(!parsed)
     {
         throw domain_error("Failed to parse time string: " +  data);
+    }
+
+    if(debug)
+    {
+        cout << "year = " << some_time.tm_year
+             << ", month = " << some_time.tm_mon
+             << ", day = " << some_time.tm_mday << "\n"
+             << "hour = " << some_time.tm_hour
+             << ", minute = " << some_time.tm_min
+             << ", gmt_offset = " << last_gmt_offset << "\n";
     }
 
     // calculating
