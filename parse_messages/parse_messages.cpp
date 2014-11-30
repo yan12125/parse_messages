@@ -14,7 +14,9 @@ using namespace xercesc;
 
 Util util;
 
-void parseMessageHtm(const char* filename, SQLiteInsertor<string, int, string, string>& inserter)
+typedef SQLiteInsertor<string, int, string, string, int> InserterType;
+
+void parseMessageHtm(const char* filename, InserterType& inserter)
 {
     XMLPlatformUtils::Initialize();
 
@@ -22,8 +24,8 @@ void parseMessageHtm(const char* filename, SQLiteInsertor<string, int, string, s
     parser->setFeature(XMLUni::fgSAX2CoreValidation, true);
     parser->setFeature(XMLUni::fgSAX2CoreNameSpaces, true);   // optional
 
-    MySAX2Handler::CallbackT callback = [&inserter] (string thread, string meta, string user, string content) {
-        inserter.push_data(thread, util.timestamp(meta), user, content);
+    MySAX2Handler::CallbackT callback = [&inserter] (string thread, string meta, string user, string content, int contentIndex) {
+        inserter.push_data(thread, util.timestamp(meta), user, content, contentIndex);
     };
     MySAX2Handler* defaultHandler = new MySAX2Handler(callback);
     parser->setContentHandler(defaultHandler);
@@ -57,9 +59,9 @@ int main (int argc, char* argv[])
         try
         {
             sqlite::connection con("output.db");
-            sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages (thread text, timestamp int, user text, content text)", true);
+            sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages (thread text, timestamp int, user text, content text, contentIndex int)", true);
             sqlite::execute(con, "CREATE TABLE IF NOT EXISTS meta (`key` text, `value` text, PRIMARY KEY (`key`))", true);
-            SQLiteInsertor<string, int, string, string> inserter(con, "INSERT INTO messages (thread,timestamp,user,content) VALUES (?,?,?,?)", 200);
+            InserterType inserter(con, "INSERT INTO messages (thread,timestamp,user,content,contentIndex) VALUES (?,?,?,?,?)", 150);
 
             parseMessageHtm(filename, inserter);
             sqlite::command writeGmtOffset(con, "INSERT INTO meta (`key`, `value`) VALUES ('gmt_offset',?)");

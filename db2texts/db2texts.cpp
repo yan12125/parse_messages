@@ -43,14 +43,14 @@ int main(int argc, char* argv[])
     {
         filesystem::path full_path = output_dir / filesystem::path(a_thread+".txt");
         f.open(full_path.string());
-        sqlite::query getMessages(con, "SELECT timestamp,user,content FROM messages WHERE thread=? ORDER BY timestamp ASC");
+        sqlite::query getMessages(con, "SELECT timestamp,contentIndex,user,content FROM messages WHERE thread=? ORDER BY timestamp ASC, contentIndex DESC"); // facebook put newer messages first
         getMessages.bind(1, a_thread);
         boost::shared_ptr<sqlite::result> result2 = getMessages.get_result();
         while(result2->next_row())
         {
             int timestamp = result2->get_int(0);
-            string user = result2->get_string(1);
-            string content = result2->get_string(2);
+            string user = result2->get_string(2);
+            string content = result2->get_string(3);
             ss << posix_time::from_time_t(timestamp + gmt_offset * 3600);
             f << ss.str() << "," << user << "," << content << "\n";
             ss.str(string());

@@ -15,7 +15,7 @@ ostream& operator<<(ostream& os, const XMLCh* str)
     return os;
 }
 
-MySAX2Handler::MySAX2Handler(CallbackT& callback): callback(callback)
+MySAX2Handler::MySAX2Handler(CallbackT& callback): callback(callback), contentIndex(0)
 {
     initXMLStrings();
     state = NONE;
@@ -114,7 +114,8 @@ void MySAX2Handler::endElement(const XMLCh* const /*uri*/, const XMLCh* const lo
     }
     if(state == MSG_CONTENT && xmlStringEquals(localname, "p"))
     {
-        callback(thread, meta, user, content);
+        callback(thread, meta, user, content, contentIndex);
+        contentIndex++;
         user.clear();
         content.clear();
     }
@@ -133,6 +134,11 @@ void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t length)
             break;
         case MSG_META:
             meta = toUTF8(chars, length);
+            if(meta != last_meta)
+            {
+                contentIndex = 0;
+                last_meta = meta;
+            }
             break;
         case MSG_USER:
             user += toUTF8(chars, length);
