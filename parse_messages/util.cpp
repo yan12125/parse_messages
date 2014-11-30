@@ -28,14 +28,13 @@ long Util::timestamp(string data)
     };
     smatch results;
     struct tm some_time;
-    int gmt_offset = 0;
     bool parsed = false;
     for(unsigned int i = 0; i < patterns.size(); i++)
     {
         if(regex_match(data, results, patterns[i]))
         {
             memset(&some_time, 0, sizeof(some_time));
-            handlers[i](some_time, gmt_offset, results);
+            handlers[i](some_time, last_gmt_offset, results);
             parsed = true;
             break;
         }
@@ -46,5 +45,5 @@ long Util::timestamp(string data)
     }
 
     // calculating
-    return (boost::posix_time::ptime_from_tm(some_time) - epoch).total_seconds() - gmt_offset*3600;
+    return (boost::posix_time::ptime_from_tm(some_time) - epoch).total_seconds() - last_gmt_offset*3600;
 }

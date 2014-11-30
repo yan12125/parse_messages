@@ -13,12 +13,15 @@ class Util: public QObject
 {
     Q_OBJECT
 private:
+    // static data
     vector<string> weekdays;
     vector<string> months;
     unordered_map<string, int> weekday_map;
     unordered_map<string, int> month_map;
     vector<regex> patterns;
     boost::posix_time::ptime epoch;
+
+    int last_gmt_offset;
 public:
     Util():
         weekdays({ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }), 
@@ -40,6 +43,10 @@ public:
         }
     }
     long timestamp(string data);
+    int get_last_gmt_offset() const
+    {
+        return last_gmt_offset;
+    }
 signals:
     void errorOccurred(string time_str);
     void finished();

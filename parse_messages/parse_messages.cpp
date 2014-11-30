@@ -58,9 +58,12 @@ int main (int argc, char* argv[])
         {
             sqlite::connection con("output.db");
             sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages (thread text, timestamp int, user text, content text)", true);
+            sqlite::execute(con, "CREATE TABLE IF NOT EXISTS meta (`key` text, `value` text, PRIMARY KEY (`key`))", true);
             SQLiteInsertor<string, int, string, string> inserter(con, "INSERT INTO messages (thread,timestamp,user,content) VALUES (?,?,?,?)", 200);
 
             parseMessageHtm(filename, inserter);
+            sqlite::command writeGmtOffset(con, "INSERT INTO meta (`key`, `value`) VALUES ('gmt_offset',?)");
+            (writeGmtOffset % util.get_last_gmt_offset())();
             emit util.finished();
         }
         catch(std::exception &e)
