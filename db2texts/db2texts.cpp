@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
     {
         filesystem::path full_path = output_dir / filesystem::path(a_thread+".txt");
         f.open(full_path.string());
-        sqlite::query getMessages(con, "SELECT timestamp,user,content FROM messages WHERE thread=? ORDER BY timestamp DESC");
+        sqlite::query getMessages(con, "SELECT timestamp,user,content FROM messages WHERE thread=? ORDER BY timestamp ASC");
         getMessages.bind(1, a_thread);
         boost::shared_ptr<sqlite::result> result2 = getMessages.get_result();
         while(result2->next_row())
