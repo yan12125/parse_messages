@@ -8,18 +8,20 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 # Dependencies
 find_package(Boost 1.57.0 REQUIRED COMPONENTS locale filesystem system)
-pkg_check_modules(XERCES_C REQUIRED xerces-c)
 find_package(VSQLitePP)
 find_package(Qt5Widgets REQUIRED)
+find_package(Qt5Xml REQUIRED)
 
 include_directories(
     ${Boost_INCLUDE_DIRS}
-    ${XERCES_C_INCLUDE_DIRS}
     ${VSQLITEPP_INCLUDE_DIR}
     ${Qt5Widgets_INCLUDE_DIRS}
+    ${Qt5Xml_INCLUDE_DIRS}
 )
 
-set(CXX_FLAGS_COMMON "-std=c++14 -Wall -Wextra")
+# QT_NO_EMIT prevent Qt headers from defining emit, which is used in vsqlite++
+# FIXME: QT_NO_EMIT is undocumented
+set(CXX_FLAGS_COMMON "-std=c++14 -Wall -Wextra -DQT_NO_EMIT")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_COMMON}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CXX_FLAGS_COMMON} -DMY_DEBUG")
 
@@ -34,8 +36,8 @@ endforeach(sub_folder)
 
 target_link_libraries(parse_messages
     ${Boost_LIBRARIES}
-    ${XERCES_C_LIBRARIES}
     ${VSQLITEPP_LIBRARY}
     Qt5::Widgets
+    Qt5::Xml
 )
 target_link_libraries(db2texts ${Boost_LIBRARIES} ${VSQLITEPP_LIBRARY})

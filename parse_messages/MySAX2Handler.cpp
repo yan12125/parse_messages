@@ -1,135 +1,97 @@
 #include "MySAX2Handler.hpp"
 #include "util.hpp"
-#include <xercesc/util/TransService.hpp>
-#include <xercesc/util/XMLString.hpp>
-#include <xercesc/sax2/Attributes.hpp>
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
 using namespace std;
 
-ostream& operator<<(ostream& os, const XMLCh* str)
+ostream& operator<<(ostream& os, const QString& str)
 {
-    char* nativeStr = XMLString::transcode(str);
-    os << nativeStr;
-    XMLString::release(&nativeStr);
+    os << str.toUtf8().constData();
     return os;
 }
 
 MySAX2Handler::MySAX2Handler(CallbackT& callback): callback(callback), contentIndex(0)
 {
-    initXMLStrings();
     state = NONE;
-    XMLCh encoding[] = { 'U', 'T', 'F', '8', 0 };
-    transcoder = new XMLUTF8Transcoder(encoding, 1024);
 }
 
 MySAX2Handler::~MySAX2Handler()
 {
-    delete transcoder;
-    cleanupXmlStrings();
 }
 
-bool MySAX2Handler::xmlStringEquals(const XMLCh* l, const char* r) const
+bool MySAX2Handler::startElement(const QString& /*uri*/, const QString& localname, const QString& /*qname*/, const QXmlAttributes& attrs)
 {
-    auto it = xmlStrings.find(r);
-    if(it == xmlStrings.end())
-    {
-        throw "Unexpected string";
-    }
-    return XMLString::equals(l, it->second);
-}
-
-string MySAX2Handler::toUTF8(const XMLCh* str, XMLSize_t len) const
-{
-    if(Util::debug)
-    {
-        cout << "toUTF8 str = " << str << ", len = " << len << endl;
-    }
-
-    string buf(len * 3 + 1, '\0'); // assume 3 is the maximum length of UTF-8 characters
-    XMLSize_t got = 0;
-    XMLSize_t bytesFilled = transcoder->transcodeTo(str, len, reinterpret_cast<XMLByte*>(&buf[0]), len * 3, got, XMLUTF8Transcoder::UnRep_Throw);
-    buf[bytesFilled] = '\0';
-    buf.resize(bytesFilled);
-
-    if(Util::debug)
-    {
-        cout << "result = " << buf << endl;
-    }
-
-    return buf;
-}
-
-void MySAX2Handler::startElement(const XMLCh* const /*uri*/, const XMLCh* const localname, const XMLCh* const /*qname*/, const Attributes& attrs)
-{
-    const XMLCh* htmlClass = attrs.getValue(xmlStrings["class"]);
+    QString htmlClass = attrs.value("class");
     if(Util::debug)
     {
         cout << "<" << localname;
-        if(htmlClass)
+        if(!htmlClass.isEmpty())
         {
             cout << "." << htmlClass;
         }
         cout << ">\n";
     }
-    if(xmlStringEquals(localname, "div"))
+    if(localname == "div")
     {
-        if(xmlStringEquals(htmlClass, "thread"))
+        if(htmlClass == "thread")
         {
             state = NEW_THREAD;
             thread.clear();
         }
-        else if(xmlStringEquals(htmlClass, "footer"))
+        else if(htmlClass == "footer")
         {
             state = NONE;
         }
     }
-    else if(xmlStringEquals(localname, "span"))
+    else if(localname == "span")
     {
-        if(xmlStringEquals(htmlClass, "user"))
+        if(htmlClass == "user")
         {
             state = MSG_USER;
         }
-        else if(xmlStringEquals(htmlClass, "meta"))
+        else if(htmlClass == "meta")
         {
             state = MSG_META;
         }
     }
-    else if(xmlStringEquals(localname, "p"))
+    else if(localname == "p")
     {
         state = MSG_CONTENT;
     }
+    return true;
 }
 
-void MySAX2Handler::endElement(const XMLCh* const /*uri*/, const XMLCh* const localname, const XMLCh* const /*qname*/)
+bool MySAX2Handler::endElement(const QString& /*uri*/, const QString& localname, const QString& /*qname*/)
 {
     if(Util::debug)
     {
         cout << "</" << localname << ">\n";
     }
-    if(state == MSG_CONTENT && xmlStringEquals(localname, "p"))
+    if(state == MSG_CONTENT && localname == "p")
     {
         callback(thread, meta, user, content, contentIndex);
         contentIndex++;
         user.clear();
         content.clear();
     }
+    return true;
 }
 
-void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t length)
+bool MySAX2Handler::characters(const QString& chars)
 {
+    string chars2 = chars.toStdString();
     if(Util::debug)
     {
-        cout << "Characters: " << chars << "\n";
+        cout << "Characters: " << chars2 << "\n";
     }
     switch(state)
     {
         case NEW_THREAD:
-            thread += toUTF8(chars, length);
+            thread += chars2;
             break;
         case MSG_META:
-            meta = toUTF8(chars, length);
+            meta = chars2;
             if(meta != last_meta)
             {
                 contentIndex = 0;
@@ -137,60 +99,22 @@ void MySAX2Handler::characters(const XMLCh *const chars, const XMLSize_t length)
             }
             break;
         case MSG_USER:
-            user += toUTF8(chars, length);
+            user += chars2;
             break;
         case MSG_CONTENT:
-            content += toUTF8(chars, length);
+            content += chars2;
             break;
         case NONE:
             break;
     }
+    return true;
 }
 
-void MySAX2Handler::fatalError(const SAXParseException& ex)
+bool MySAX2Handler::fatalError(const QXmlParseException& ex)
 {
     stringstream ss;
-    ss << "Fatal Error: " << ex.getMessage()
-       << " at line " << ex.getLineNumber()
-       << ", column " << ex.getColumnNumber();
+    ss << "Fatal Error: " << ex.message()
+       << " at line " << ex.lineNumber()
+       << ", column " << ex.columnNumber();
     throw runtime_error(ss.str());
-}
-
-void MySAX2Handler::initXMLStrings()
-{
-    addXmlString("div");
-    addXmlString("span");
-    addXmlString("p");
-    addXmlString("class");
-
-    addXmlString("user");
-    addXmlString("meta");
-    addXmlString("thread");
-    addXmlString("message");
-    addXmlString("footer");
-}
-
-void MySAX2Handler::addXmlString(const char* str)
-{
-    // copy char* to unsigned char*
-    size_t N = strlen(str)+1;
-    unsigned char* ptr = new unsigned char[N];
-    memcpy(ptr, str, N);
-
-    // transform unsigned char* (XMLByte*) to XMLCh*
-    TranscodeFromStr transcoder(ptr, N, "UTF8");
-
-    // save XMLCh* results
-    XMLCh* data = new XMLCh[transcoder.length()+1];
-    memcpy(data, transcoder.str(), sizeof(XMLCh) * (transcoder.length()+1));
-    xmlStrings[str] = data;
-    delete [] ptr;
-}
-
-void MySAX2Handler::cleanupXmlStrings()
-{
-    for(pair<const char*, const XMLCh*> xmlStringPair : xmlStrings)
-    {
-        delete [] xmlStringPair.second;
-    }
 }
