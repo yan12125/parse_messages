@@ -23,7 +23,7 @@ void parseMessageHtm(const char* filename, InserterType& inserter)
     reader.setContentHandler(&handler);
     reader.setErrorHandler(&handler);
 
-    QFile file(filename);
+    QFile file(QString::fromLocal8Bit(filename));
     QXmlInputSource source(&file);
     reader.parse(source);
 }
