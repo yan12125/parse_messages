@@ -2,14 +2,13 @@
 #include <sqlite/query.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
 #include <fstream>
 #include <string>
 #include <locale>
 #include <vector>
+#include <QString>
+#include <QDir>
 using namespace std;
-using namespace boost;
 
 int main(int argc, char* argv[])
 {
@@ -17,7 +16,7 @@ int main(int argc, char* argv[])
     {
         return -1;
     }
-    locale loc(locale::classic(), new posix_time::time_facet("%Y/%m/%d %H:%M")); // seems Facebook does not record seconds info
+    locale loc(locale::classic(), new boost::posix_time::time_facet("%Y/%m/%d %H:%M")); // seems Facebook does not record seconds info
     stringstream ss;
     ss.imbue(loc);
 
@@ -36,13 +35,13 @@ int main(int argc, char* argv[])
     gmtResult->next_row();
     int gmt_offset = stoi(gmtResult->get_string(0));
 
-    filesystem::path output_dir("output");
-    filesystem::create_directory(output_dir);
+    QDir().mkdir("output");
+    QDir output_dir("output");
     ofstream f;
     for(string a_thread : threads)
     {
-        filesystem::path full_path = output_dir / filesystem::path(a_thread+".txt");
-        f.open(full_path.string());
+        QString filename = output_dir.filePath(QString::fromStdString(a_thread+".txt"));
+        f.open(filename.toLocal8Bit().constData());
         sqlite::query getMessages(con, "SELECT timestamp,contentIndex,user,content FROM messages WHERE thread=? ORDER BY timestamp ASC, contentIndex DESC"); // facebook put newer messages first
         getMessages.bind(1, a_thread);
         boost::shared_ptr<sqlite::result> result2 = getMessages.get_result();
@@ -51,7 +50,7 @@ int main(int argc, char* argv[])
             int timestamp = result2->get_int(0);
             string user = result2->get_string(2);
             string content = result2->get_string(3);
-            ss << posix_time::from_time_t(timestamp + gmt_offset * 3600);
+            ss << boost::posix_time::from_time_t(timestamp + gmt_offset * 3600);
             f << ss.str() << "," << user << "," << content << "\n";
             ss.str(string());
         }
