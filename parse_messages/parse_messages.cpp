@@ -1,3 +1,4 @@
+#include "common.hpp"
 #include "MySAX2Handler.hpp"
 #include "SQLiteInserter.hpp"
 #include "util.hpp"
@@ -44,9 +45,9 @@ int main (int argc, char* argv[])
         try
         {
             sqlite::connection con("output.db");
-            sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages (thread text, timestamp int, user text, content text, contentIndex int)", true);
+            sqlite::execute(con, "CREATE TABLE IF NOT EXISTS messages "+messages_schema, true);
             sqlite::execute(con, "CREATE TABLE IF NOT EXISTS meta (`key` text, `value` text, PRIMARY KEY (`key`))", true);
-            InserterType inserter(con, "INSERT INTO messages (thread,timestamp,user,content,contentIndex) VALUES (?,?,?,?,?)", 150);
+            InserterType inserter(con, "INSERT INTO messages "+messages_columns+" VALUES (?,?,?,?,?)", 150);
 
             parseMessageHtm(filename, inserter);
             sqlite::command writeGmtOffset(con, "INSERT INTO meta (`key`, `value`) VALUES ('gmt_offset',?)");
