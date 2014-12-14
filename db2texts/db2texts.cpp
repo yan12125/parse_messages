@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
     ss.imbue(loc);
 
     vector<string> threads;
-    sqlite::connection con(argv[1]);
+    sqlite::connection con(QString::fromLocal8Bit(argv[1]).toStdString());
     sqlite::query threadQuery(con, "SELECT DISTINCT thread FROM messages");
     sqlite::result_type threadResults = threadQuery.get_result();
     while(threadResults->next_row())
