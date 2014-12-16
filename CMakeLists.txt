@@ -1,11 +1,13 @@
-cmake_minimum_required(VERSION 3.0)
+# Auto link to qtmain.lib on Windows requires cmake 2.8.11+
+# See CMP0020 http://www.cmake.org/cmake/help/v3.0/policy/CMP0020.html
+cmake_minimum_required(VERSION 2.8.11)
 
 project(parse_messages)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 # Dependencies
-find_package(Boost 1.57.0 REQUIRED COMPONENTS locale)
+find_package(Boost 1.54.0 REQUIRED COMPONENTS locale)
 find_package(VSQLitePP)
 find_package(Qt5 COMPONENTS Xml Sql Widgets REQUIRED)
 
@@ -13,7 +15,9 @@ include_directories(${Boost_INCLUDE_DIRS} ${VSQLITEPP_INCLUDE_DIR} ${Qt5Widgets_
 
 # QT_NO_EMIT prevent Qt headers from defining emit, which is used in vsqlite++
 # FIXME: QT_NO_EMIT is undocumented
-set(CXX_FLAGS_COMMON "-std=c++14 -Wall -Wextra -DQT_NO_EMIT")
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61841
+# Debian-based system require pthread if using std::thread
+set(CXX_FLAGS_COMMON "-std=c++14 -Wall -Wextra -DQT_NO_EMIT -pthread")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_COMMON}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CXX_FLAGS_COMMON} -DMY_DEBUG")
 
