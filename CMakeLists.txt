@@ -17,9 +17,10 @@ include_directories(${Boost_INCLUDE_DIRS} ${VSQLITEPP_INCLUDE_DIR} ${Qt5Widgets_
 # FIXME: QT_NO_EMIT is undocumented
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61841
 # Debian-based system require pthread if using std::thread
-set(CXX_FLAGS_COMMON "-std=c++14 -Wall -Wextra -DQT_NO_EMIT -pthread")
+set(CXX_FLAGS_COMMON "-std=c++14 -Wall -Wextra -DQT_NO_EMIT")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_FLAGS_COMMON}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CXX_FLAGS_COMMON} -DMY_DEBUG")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
 
 if(NOT WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
