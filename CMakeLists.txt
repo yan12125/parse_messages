@@ -26,11 +26,10 @@ if(NOT WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 
-foreach(sub_folder parse_messages db2texts merger)
+foreach(sub_folder parse_messages db2texts)
     aux_source_directory("${CMAKE_SOURCE_DIR}/${sub_folder}" SOURCES_${sub_folder})
     add_executable(${sub_folder} ${SOURCES_${sub_folder}})
 endforeach(sub_folder)
 
 target_link_libraries(parse_messages ${Boost_LIBRARIES} ${VSQLITEPP_LIBRARY} Qt5::Widgets Qt5::Xml)
 target_link_libraries(db2texts ${Boost_LIBRARIES} ${VSQLITEPP_LIBRARY} Qt5::Core)
-target_link_libraries(merger Qt5::Widgets Qt5::Sql)
