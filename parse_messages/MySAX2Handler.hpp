@@ -18,7 +18,7 @@ public:
     bool fatalError(const QXmlParseException& ex);
 
 private:
-    enum { NONE, NEW_THREAD, MSG_META, MSG_USER, MSG_CONTENT } state;
+    enum { NONE, NEW_THREAD, MSG_META, MSG_USER, MSG_CONTENT, WARNING } state;
     string thread;
     string meta;
     string user;

@@ -43,6 +43,10 @@ bool MySAX2Handler::startElement(const QString& /*uri*/, const QString& localnam
         {
             state = NONE;
         }
+        else if(htmlClass == "warning")
+        {
+            state = WARNING;
+        }
     }
     else if(localname == "span")
     {
@@ -104,6 +108,12 @@ bool MySAX2Handler::characters(const QString& chars)
         case MSG_CONTENT:
             content += chars2;
             break;
+        case WARNING:
+        {
+            stringstream ss;
+            ss << "Warning: " << chars2 << "\nPlease download your facebook archive again.";
+            throw runtime_error(ss.str());
+        }
         case NONE:
             break;
     }
