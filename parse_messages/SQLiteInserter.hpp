@@ -9,7 +9,6 @@
 #include <string>
 #include <vector>
 using namespace std;
-using namespace boost;
 
 template<typename... Types>
 class SQLiteInsertor
@@ -20,7 +19,7 @@ public:
         size_t pos = sql.find_last_of(' ');
         head = sql.substr(0, pos+1);
         tail = sql.substr(pos+1);
-        insert = new sqlite::command(con, head + algorithm::join(vector<string>(length, tail), ","));
+        insert = new sqlite::command(con, head + boost::algorithm::join(vector<string>(length, tail), ","));
     }
 
     ~SQLiteInsertor()
@@ -48,7 +47,7 @@ private:
             insert = nullptr;
             if(hasData)
             {
-                insert_real = new sqlite::command(con, head + algorithm::join(vector<string>(data_buffer.size(), tail), ","));
+                insert_real = new sqlite::command(con, head + boost::algorithm::join(vector<string>(data_buffer.size(), tail), ","));
             }
         }
         else
