@@ -1,14 +1,13 @@
 #pragma once
 
-#include <QXmlDefaultHandler>
-#include <unordered_map>
+#include <string>
 #include <functional>
-using namespace std;
+#include <QXmlDefaultHandler>
 
 class MySAX2Handler : public QXmlDefaultHandler
 {
 public:
-    typedef function<void(string, string, string, string, int)> CallbackT;
+    typedef std::function<void(std::string, std::string, std::string, std::string, int)> CallbackT;
     MySAX2Handler(CallbackT& callback);
     ~MySAX2Handler();
 
@@ -19,11 +18,11 @@ public:
 
 private:
     enum { NONE, NEW_THREAD, MSG_META, MSG_USER, MSG_CONTENT, WARNING } state;
-    string thread;
-    string meta;
-    string user;
-    string content;
-    string last_meta;
+    std::string thread;
+    std::string meta;
+    std::string user;
+    std::string content;
+    std::string last_meta;
     CallbackT& callback;
     int contentIndex; // to differentiate messages in the same minute
 };

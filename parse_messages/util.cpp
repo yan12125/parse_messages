@@ -2,7 +2,6 @@
 #include <vector>
 #include <functional>
 #include <stdexcept>
-using namespace std;
 
 #ifdef MY_DEBUG
 bool Util::debug = true;
@@ -14,8 +13,8 @@ Util::Util():
     weekdays({ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }), 
     months({ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" }), 
     patterns({
-        regex("^([A-Z][a-z]+), ([A-Z][a-z]+) (\\d{1,2}), (\\d{4}) at (\\d{1,2}):(\\d{2})([ap]m) UTC([+-]\\d{2})"), 
-        regex("^(\\d{4})年(\\d{1,2})月(\\d{1,2})日 (\\d{1,2}):(\\d{2}) UTC([+-]\\d{2})")
+        std::regex("^([A-Z][a-z]+), ([A-Z][a-z]+) (\\d{1,2}), (\\d{4}) at (\\d{1,2}):(\\d{2})([ap]m) UTC([+-]\\d{2})"), 
+        std::regex("^(\\d{4})年(\\d{1,2})月(\\d{1,2})日 (\\d{1,2}):(\\d{2}) UTC([+-]\\d{2})")
     }), 
     epoch(boost::gregorian::date(1970,1,1))
 {
@@ -30,10 +29,10 @@ Util::Util():
     }
 }
 
-long Util::timestamp(string data)
+long Util::timestamp(std::string data)
 {
-    static vector<function<void(struct tm&, int&, const smatch&)>> handlers = {
-        [this] (struct tm& some_time, int& gmt_offset, const smatch& results) {
+    static std::vector<std::function<void(struct tm&, int&, const std::smatch&)>> handlers = {
+        [this] (struct tm& some_time, int& gmt_offset, const std::smatch& results) {
             some_time.tm_wday = weekday_map[results[1]];
             some_time.tm_mon = month_map[results[2]];
             some_time.tm_mday = stoi(results[3]);
@@ -43,7 +42,7 @@ long Util::timestamp(string data)
             some_time.tm_min = stoi(results[6]);
             gmt_offset = stoi(results[8]);
         },
-        [this] (struct tm& some_time, int& gmt_offset, const smatch& results) {
+        [this] (struct tm& some_time, int& gmt_offset, const std::smatch& results) {
             some_time.tm_year = stoi(results[1]) - 1900;
             some_time.tm_mon = stoi(results[2]) - 1;
             some_time.tm_mday = stoi(results[3]);
@@ -52,12 +51,12 @@ long Util::timestamp(string data)
             gmt_offset = stoi(results[6]);
         }
     };
-    smatch results;
+    std::smatch results;
     struct tm some_time;
     bool parsed = false;
     for(unsigned int i = 0; i < patterns.size(); i++)
     {
-        if(regex_search(data, results, patterns[i]))
+        if(std::regex_search(data, results, patterns[i]))
         {
             memset(&some_time, 0, sizeof(some_time));
             handlers[i](some_time, last_gmt_offset, results);
@@ -67,12 +66,12 @@ long Util::timestamp(string data)
     }
     if(!parsed)
     {
-        throw domain_error("Failed to parse time string: " +  data);
+        throw std::domain_error("Failed to parse time string: " +  data);
     }
 
     if(debug)
     {
-        cout << "year = " << some_time.tm_year
+        std::cout << "year = " << some_time.tm_year
              << ", month = " << some_time.tm_mon
              << ", day = " << some_time.tm_mday << "\n"
              << "hour = " << some_time.tm_hour

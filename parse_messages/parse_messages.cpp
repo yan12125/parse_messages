@@ -11,12 +11,12 @@
 
 Util util;
 
-typedef SQLiteInsertor<string, int, string, string, int> InserterType;
+typedef SQLiteInsertor<std::string, int, std::string, std::string, int> InserterType;
 
 void parseMessageHtm(const char* filename, InserterType& inserter)
 {
-    MySAX2Handler::CallbackT callback = [&inserter] (string thread, string meta, string user, string content, int contentIndex) {
-        inserter.push_data(thread, util.timestamp(meta), user, content, contentIndex);
+    MySAX2Handler::CallbackT callback = [&inserter] (std::string thread_name, std::string meta, std::string user, std::string content, int contentIndex) {
+        inserter.push_data(thread_name, util.timestamp(meta), user, content, contentIndex);
     };
 
     MySAX2Handler handler(callback);
@@ -38,10 +38,10 @@ int main (int argc, char* argv[])
 
     QApplication app(argc, argv);
 
-    qRegisterMetaType<string>("string");
+    qRegisterMetaType<std::string>("std::string");
 
     const char* filename = argv[1];
-    thread worker([filename] () {
+    std::thread worker([filename] () {
         try
         {
             sqlite::connection con("output.db");
@@ -61,7 +61,7 @@ int main (int argc, char* argv[])
         }
         // TODO: I don't know how to handle boost::exception
     });
-    QObject::connect(&util, &Util::errorOccurred, &app, [] (string data) {
+    QObject::connect(&util, &Util::errorOccurred, &app, [] (std::string data) {
         QMessageBox::critical(nullptr, "Fatal error", data.c_str());
         QApplication::exit(-1);
     });

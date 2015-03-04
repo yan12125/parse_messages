@@ -3,9 +3,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <sstream>
-using namespace std;
 
-ostream& operator<<(ostream& os, const QString& str)
+std::ostream& operator<<(std::ostream& os, const QString& str)
 {
     os << str.toUtf8().constData();
     return os;
@@ -25,12 +24,12 @@ bool MySAX2Handler::startElement(const QString& /*uri*/, const QString& localnam
     QString htmlClass = attrs.value("class");
     if(Util::debug)
     {
-        cout << "<" << localname;
+        std::cout << "<" << localname;
         if(!htmlClass.isEmpty())
         {
-            cout << "." << htmlClass;
+            std::cout << "." << htmlClass;
         }
-        cout << ">\n";
+        std::cout << ">\n";
     }
     if(localname == "div")
     {
@@ -70,7 +69,7 @@ bool MySAX2Handler::endElement(const QString& /*uri*/, const QString& localname,
 {
     if(Util::debug)
     {
-        cout << "</" << localname << ">\n";
+        std::cout << "</" << localname << ">\n";
     }
     if(state == MSG_CONTENT && localname == "p")
     {
@@ -84,10 +83,10 @@ bool MySAX2Handler::endElement(const QString& /*uri*/, const QString& localname,
 
 bool MySAX2Handler::characters(const QString& chars)
 {
-    string chars2 = chars.toStdString();
+    std::string chars2 = chars.toStdString();
     if(Util::debug)
     {
-        cout << "Characters: " << chars2 << "\n";
+        std::cout << "Characters: " << chars2 << "\n";
     }
     switch(state)
     {
@@ -110,9 +109,9 @@ bool MySAX2Handler::characters(const QString& chars)
             break;
         case WARNING:
         {
-            stringstream ss;
+            std::stringstream ss;
             ss << "Warning: " << chars2 << "\nPlease download your facebook archive again.";
-            throw runtime_error(ss.str());
+            throw std::runtime_error(ss.str());
         }
         case NONE:
             break;
@@ -122,9 +121,9 @@ bool MySAX2Handler::characters(const QString& chars)
 
 bool MySAX2Handler::fatalError(const QXmlParseException& ex)
 {
-    stringstream ss;
+    std::stringstream ss;
     ss << "Fatal Error: " << ex.message()
        << " at line " << ex.lineNumber()
        << ", column " << ex.columnNumber();
-    throw runtime_error(ss.str());
+    throw std::runtime_error(ss.str());
 }

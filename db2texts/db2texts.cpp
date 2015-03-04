@@ -8,16 +8,15 @@
 #include <vector>
 #include <QString>
 #include <QDir>
-using namespace std;
 
-void writeThread(const QDir& output_dir, const string& a_thread, int gmt_offset, sqlite::connection& con)
+void writeThread(const QDir& output_dir, const std::string& a_thread, int gmt_offset, sqlite::connection& con)
 {
-    locale loc(locale::classic(), new boost::posix_time::time_facet("%Y/%m/%d %H:%M")); // seems Facebook does not record seconds info
-    stringstream ss;
+    std::locale loc(std::locale::classic(), new boost::posix_time::time_facet("%Y/%m/%d %H:%M")); // seems Facebook does not record seconds info
+    std::stringstream ss;
     ss.imbue(loc);
 
     QString filename = output_dir.filePath(QString::fromStdString(a_thread+".txt"));
-    ofstream f(filename.toLocal8Bit().constData());
+    std::ofstream f(filename.toLocal8Bit().constData());
 
     sqlite::query getMessages(con, "SELECT timestamp,contentIndex,user,content FROM messages WHERE thread=? ORDER BY timestamp ASC, contentIndex DESC"); // facebook put newer messages first
     getMessages.bind(1, a_thread);
@@ -25,23 +24,23 @@ void writeThread(const QDir& output_dir, const string& a_thread, int gmt_offset,
     while(result2->next_row())
     {
         int timestamp = result2->get_int(0);
-        string user = result2->get_string(2);
-        string content = result2->get_string(3);
+        std::string user = result2->get_string(2);
+        std::string content = result2->get_string(3);
         ss << boost::posix_time::from_time_t(timestamp + gmt_offset * 3600);
         f << ss.str() << "," << user << "," << content << "\n";
-        ss.str(string());
+        ss.str(std::string());
     }
     f.close();
 }
 
 void iterateThreads(sqlite::connection& con, const QDir& output_dir)
 {
-    vector<string> threads;
+    std::vector<std::string> threads;
     sqlite::query threadQuery(con, "SELECT DISTINCT thread FROM messages");
     sqlite::result_type threadResults = threadQuery.get_result();
     while(threadResults->next_row())
     {
-        string a_thread = threadResults->get_string(0);
+        std::string a_thread = threadResults->get_string(0);
         threads.push_back(a_thread);
     }
 
@@ -50,7 +49,7 @@ void iterateThreads(sqlite::connection& con, const QDir& output_dir)
     gmtResult->next_row();
     int gmt_offset = stoi(gmtResult->get_string(0));
 
-    for(string a_thread : threads)
+    for(std::string a_thread : threads)
     {
         writeThread(output_dir, a_thread, gmt_offset, con);
     }
